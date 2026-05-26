@@ -134,7 +134,7 @@ tr:hover td { background: #FAFBFF; }
     <div class="logo-dot">S</div>
     <div>
       <div class="header-title">FY28 Renewal Trek â Executive Dashboard</div>
-      <div class="header-sub">US + Canada Renewal Opportunities Â· Live from Smartsheet</div>
+      <div class="header-sub">US + Canada Renewal Opportunities Â&middot; Live from Smartsheet</div>
     </div>
   </div>
   <div class="header-right">
@@ -171,10 +171,10 @@ tr:hover td { background: #FAFBFF; }
 <script>
 // ââ Trek config âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 const TREK_CONFIG = {
-  'FY27Q2': { label:'Q2 Â· FY27', status:'in-progress',  statusLabel:'In Progress', dotClass:'dot-in-progress',  badgeClass:'badge-in-progress'  },
-  'FY27Q3': { label:'Q3 Â· FY27', status:'in-progress',  statusLabel:'In Progress', dotClass:'dot-in-progress',  badgeClass:'badge-in-progress'  },
-  'FY27Q4': { label:'Q4 Â· FY27', status:'not-started',  statusLabel:'Not Started', dotClass:'dot-not-started',  badgeClass:'badge-not-started'  },
-  'FY28Q1': { label:'Q1 Â· FY28', status:'not-started',  statusLabel:'Not Started', dotClass:'dot-not-started',  badgeClass:'badge-not-started'  },
+  'FY27Q2': { label:'Q2 Â&middot; FY27', status:'in-progress',  statusLabel:'In Progress', dotClass:'dot-in-progress',  badgeClass:'badge-in-progress'  },
+  'FY27Q3': { label:'Q3 Â&middot; FY27', status:'in-progress',  statusLabel:'In Progress', dotClass:'dot-in-progress',  badgeClass:'badge-in-progress'  },
+  'FY27Q4': { label:'Q4 Â&middot; FY27', status:'not-started',  statusLabel:'Not Started', dotClass:'dot-not-started',  badgeClass:'badge-not-started'  },
+  'FY28Q1': { label:'Q1 Â&middot; FY28', status:'not-started',  statusLabel:'Not Started', dotClass:'dot-not-started',  badgeClass:'badge-not-started'  },
 };
 const TREK_ORDER = ['FY27Q2','FY27Q3','FY27Q4','FY28Q1'];
 
@@ -333,7 +333,7 @@ function init() {
   populate('fTrek',    [...new Set(allRows.map(r=>r.trekQ).filter(Boolean))].sort());
   populate('fSegment', [...new Set(allRows.map(r=>r.segment).filter(Boolean))].sort());
   document.getElementById('dataBadge').className='data-badge badge-cached';
-  document.getElementById('dataBadge').textContent='â Cached Â· May 26';
+  document.getElementById('dataBadge').textContent='â Cached Â&middot; May 26';
   document.getElementById('lastUpdated').textContent='Attempting live refreshâ¦';
   applyFilters();
   tryLiveRefresh();
@@ -414,7 +414,7 @@ function render(rows) {
       <div class="kpi" style="--accent:#EF4444">
         <div class="kpi-label">At-Risk ACV</div>
         <div class="kpi-value" style="color:var(--red)">${fmt(sentACV.Red+sentACV.Yellow)}</div>
-        <div class="kpi-sub">${sentCount.Red} red Â· ${sentCount.Yellow} yellow</div>
+        <div class="kpi-sub">${sentCount.Red} red Â&middot; ${sentCount.Yellow} yellow</div>
       </div>
     </div>
 
