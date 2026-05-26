@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Renewal Trek Dashboard</title>
+<style>
+:root {
+  color-scheme: light;
+  --orange: #FC6A21;
+  --dark: #1B1C1E;
+  --green: #22C55E;
+  --yellow: #F59E0B;
+  --red: #EF4444;
+  --bg: #F4F5F7;
+  --border: #E5E7EB;
+  --text: #111827;
+  --muted: #6B7280;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
+
+header {
+  background: var(--dark); color: white; padding: 14px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.header-left { display: flex; align-items: center; gap: 14px; }
+.logo-dot { width: 32px; height: 32px; background: var(--orange); border-radius: 8px; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:14px; color:white; flex-shrink:0; }
+.header-title { font-size: 16px; font-weight: 700; }
+.header-sub { font-size: 11px; color: #9CA3AF; margin-top: 1px; }
+.header-right { text-align: right; font-size: 11px; color: #9CA3AF; line-height: 1.6; }
+
+.data-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: 700;
+  margin-top: 4px;
+}
+.badge-live { background: #DCFCE7; color: #15803D; }
+.badge-cached { background: #FEF3C7; color: #92400E; }
+
+.filters {
+  background: white; border-bottom: 1px solid var(--border);
+  padding: 10px 24px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+}
+.filter-group { display: flex; align-items: center; gap: 6px; }
+.filter-group label { font-size: 11px; font-weight: 600; color: var(--muted); white-space: nowrap; }
+.filter-group select { font-size: 12px; border: 1px solid var(--border); border-radius: 6px; padding: 5px 8px; background: white; cursor: pointer; color: var(--text); }
+.filter-group select:focus { outline: none; border-color: var(--orange); }
+
+.main { padding: 18px 24px; }
+
+.kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.kpi { background: white; border-radius: 10px; padding: 14px 16px; border: 1px solid var(--border); position: relative; overflow: hidden; }
+.kpi::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background: var(--accent, var(--orange)); }
+.kpi-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.kpi-value { font-size: 26px; font-weight: 800; margin-top: 4px; color: var(--text); line-height: 1; }
+.kpi-denom { font-size: 14px; font-weight: 500; color: var(--muted); }
+.kpi-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+.charts-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.chart-card { background: white; border-radius: 10px; border: 1px solid var(--border); padding: 16px; }
+.card-title { font-size: 11px; font-weight: 700; color: var(--text); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.05em; }
+.chart-wrap { position: relative; height: 185px; }
+
+/* Trek Status */
+.trek-card { background: white; border-radius: 10px; border: 1px solid var(--border); padding: 16px; margin-bottom: 16px; }
+.trek-columns { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.trek-col { border-radius: 8px; overflow: hidden; border: 1px solid var(--border); display: flex; flex-direction: column; }
+.trek-col-header { padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+.trek-col-label { font-size: 13px; font-weight: 800; }
+.trek-status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; width: fit-content; }
+.trek-stats { display: flex; gap: 10px; padding: 6px 12px 8px; border-bottom: 1px solid var(--border); }
+.trek-stat { font-size: 11px; }
+.trek-stat-val { font-weight: 700; }
+.trek-stat-lbl { color: var(--muted); }
+.trek-col-body { padding: 8px; flex: 1; overflow-y: auto; max-height: 280px; display: flex; flex-direction: column; gap: 4px; }
+.trek-account-row { padding: 6px 8px; border-radius: 6px; background: var(--bg); border: 1px solid transparent; display: flex; align-items: center; gap: 6px; font-size: 11px; }
+.trek-account-row:hover { border-color: var(--border); background: white; }
+.trek-acct-name { font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.trek-acct-acv { font-size: 10px; color: var(--muted); white-space: nowrap; }
+.trek-col.in-progress .trek-col-header { background: #FFF7ED; }
+.trek-col.not-started .trek-col-header { background: #F9FAFB; }
+.badge-in-progress { background: #FEF3C7; color: #92400E; }
+.badge-not-started { background: #F3F4F6; color: #6B7280; }
+.dot-in-progress { width: 6px; height: 6px; border-radius: 50%; background: var(--orange); display: inline-block; }
+.dot-not-started { width: 6px; height: 6px; border-radius: 50%; background: #D1D5DB; display: inline-block; }
+.sent-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.sent-dot.Green { background: #22C55E; }
+.sent-dot.Yellow { background: #F59E0B; }
+.sent-dot.Red { background: #EF4444; }
+.sent-dot.NA { background: #D1D5DB; }
+
+/* Exec */
+.exec-card { background: white; border-radius: 10px; border: 1px solid var(--border); padding: 16px; margin-bottom: 16px; }
+.exec-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; max-height: 220px; overflow-y: auto; }
+.exec-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 6px; background: #FAFAFA; border: 1px solid #F3F4F6; }
+.exec-avatar { width: 28px; height: 28px; border-radius: 50%; color: white; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+.exec-name { font-size: 11px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.exec-role { font-size: 10px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.exec-count { margin-left: auto; background: #EEF2FF; color: #4338CA; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+
+/* Table */
+.table-card { background: white; border-radius: 10px; border: 1px solid var(--border); overflow: hidden; }
+.table-header { padding: 14px 16px 12px; border-bottom: 1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+.table-wrap { overflow-x: auto; max-height: 480px; overflow-y: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+th { text-align: left; padding: 8px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); background: #FAFAFA; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 1; white-space: nowrap; }
+td { padding: 8px 12px; border-bottom: 1px solid #F3F4F6; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #FAFBFF; }
+.badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+.badge-green { background: #DCFCE7; color: #15803D; }
+.badge-yellow { background: #FEF3C7; color: #92400E; }
+.badge-red { background: #FEE2E2; color: #991B1B; }
+.badge-na { background: #F3F4F6; color: #6B7280; }
+.score-chip { display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 700; }
+.s0,.s1 { background:#FEE2E2; color:#991B1B; }
+.s2,.s3 { background:#FEF3C7; color:#92400E; }
+.s4,.s5 { background:#DCFCE7; color:#15803D; }
+.tick { color: #22C55E; font-weight: 700; font-size: 13px; }
+.dash { color: #D1D5DB; font-size: 13px; }
+.company-name { font-weight: 600; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; }
+.exec-pills { display: flex; flex-wrap: wrap; gap: 3px; }
+.exec-pill { font-size: 10px; padding: 1px 6px; border-radius: 10px; background: #F3F4F6; color: #374151; white-space: nowrap; }
+.exec-pill.sponsor { background: #EEF2FF; color: #4338CA; }
+.exec-pill.cs { background: #F0FDF4; color: #15803D; }
+.exec-pill.ridealong { background: #FFF7ED; color: #C2410C; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <div class="logo-dot">S</div>
+    <div>
+      <div class="header-title">FY28 Renewal Trek â Executive Dashboard</div>
+      <div class="header-sub">US + Canada Renewal Opportunities Â· Live from Smartsheet</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div id="lastUpdated">â</div>
+    <div id="dataBadge" class="data-badge badge-cached">â³ Loadingâ¦</div>
+  </div>
+</header>
+
+<div class="filters">
+  <div class="filter-group"><label>Trek Quarter</label>
+    <select id="fTrek" onchange="applyFilters()"><option value="">All Quarters</option></select>
+  </div>
+  <div class="filter-group"><label>Segment</label>
+    <select id="fSegment" onchange="applyFilters()"><option value="">All Segments</option></select>
+  </div>
+  <div class="filter-group"><label>Prioritized</label>
+    <select id="fPriority" onchange="applyFilters()">
+      <option value="">All</option><option value="yes">Yes</option><option value="no">No</option>
+    </select>
+  </div>
+  <div class="filter-group"><label>Sentiment</label>
+    <select id="fSentiment" onchange="applyFilters()">
+      <option value="">All</option>
+      <option value="Green">ð¢ Green</option>
+      <option value="Yellow">ð¡ Yellow</option>
+      <option value="Red">ð´ Red</option>
+    </select>
+  </div>
+</div>
+
+<div class="main"><div id="root"></div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<script>
+// ââ Trek config âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+const TREK_CONFIG = {
+  'FY27Q2': { label:'Q2 Â· FY27', status:'in-progress',  statusLabel:'In Progress', dotClass:'dot-in-progress',  badgeClass:'badge-in-progress'  },
+  'FY27Q3': { label:'Q3 Â· FY27', status:'in-progress',  statusLabel:'In Progress', dotClass:'dot-in-progress',  badgeClass:'badge-in-progress'  },
+  'FY27Q4': { label:'Q4 Â· FY27', status:'not-started',  statusLabel:'Not Started', dotClass:'dot-not-started',  badgeClass:'badge-not-started'  },
+  'FY28Q1': { label:'Q1 Â· FY28', status:'not-started',  statusLabel:'Not Started', dotClass:'dot-not-started',  badgeClass:'badge-not-started'  },
+};
+const TREK_ORDER = ['FY27Q2','FY27Q3','FY27Q4','FY28Q1'];
+
+// ââ Seed data (fetched 2026-05-26 â refreshed live on open) ââââââââââââââââââ
+const SEED = [
+  {company:"A Teichert & Son, Inc.",       segment:"Select",    tier:"Select High",       csm:"James Ruyle",             acv:1581284, sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q1", trekQ:"FY27Q3", prioritized:"no",  meetingDone:false, execSponsors:[],                                                              csSponsors:["Kristine Dillon (Director, Customer Success)"],          r1:"",r2:"",r3:""},
+  {company:"A W P Inc",                    segment:"Strategic", tier:"Strategic High",    csm:"Daniel Cohen",            acv:2654707, sentiment:"Green",  score:"",                        renewalQ:"FY28Q4", trekQ:"FY28Q1", prioritized:"no",  meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"AdaptHealth LLC",              segment:"Core",      tier:"Core High",         csm:"Adam Weimer",             acv:928025,  sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q3", trekQ:"FY27Q4", prioritized:"no",  meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"Ahold Delhaize USA Services",  segment:"Select",    tier:"Select High",       csm:"Raffi Krigel",            acv:2605132, sentiment:"Green",  score:"3 - Flat",               renewalQ:"FY28Q2", trekQ:"FY27Q2", prioritized:"yes", meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"American Iron and Metal Co.",  segment:"Canada",    tier:"Elite",             csm:"Hugo Naja",               acv:836136,  sentiment:"Yellow", score:"4 - Moderate Growth",    renewalQ:"FY28Q3", trekQ:"FY27Q4", prioritized:"",   meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"AmeriPro EMS",                 segment:"Plus",      tier:"Plus",              csm:"Corrie Hill",             acv:354556,  sentiment:"Green",  score:"",                        renewalQ:"FY28Q3", trekQ:"FY27Q3", prioritized:"",   meetingDone:false, execSponsors:["Sean McGee (VP, Platform)"],                                   csSponsors:["Marcus Walker (Director, Customer Success)"],            r1:"",r2:"",r3:""},
+  {company:"APi Group, Inc.",              segment:"Strategic", tier:"Strategic High",    csm:"Allie Pedrotti",          acv:2711778, sentiment:"Yellow", score:"4 - Moderate Growth",    renewalQ:"FY28Q3", trekQ:"FY27Q4", prioritized:"yes", meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"Archer Daniels Midland (ADM)", segment:"Select",    tier:"Select High",       csm:"Raffi Krigel",            acv:1055018, sentiment:"Yellow", score:"2 - Moderate Downsize",  renewalQ:"FY28Q3", trekQ:"FY27Q4", prioritized:"no",  meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"Atomic Transport",             segment:"Select",    tier:"Select High",       csm:"Paulette Santa-Parzons",  acv:892963,  sentiment:"Yellow", score:"4 - Moderate Growth",    renewalQ:"FY28Q2", trekQ:"FY27Q3", prioritized:"no",  meetingDone:false, execSponsors:["Arpan Podduturi (VP, Product Management)"],            csSponsors:["Caleb Newton (VP, Renewals)"],                           r1:"",r2:"",r3:""},
+  {company:"Azuria Water Solutions, Inc.", segment:"Select",    tier:"Select Standard",   csm:"Eric Waguespack",         acv:800545,  sentiment:"Yellow", score:"4 - Moderate Growth",    renewalQ:"FY28Q1", trekQ:"FY27Q3", prioritized:"yes", meetingDone:false, execSponsors:["Sean McGee (VP, Platform)"],                                   csSponsors:["Marcus Walker (Director, Customer Success)"],            r1:"",r2:"",r3:""},
+  {company:"Barnhart Crane and Rigging",   segment:"Core",      tier:"Core High",         csm:"Dani Crippen",            acv:1066416, sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q4", trekQ:"FY28Q1", prioritized:"",   meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"BrandSafway",                  segment:"Strategic", tier:"Strategic Standard",csm:"Eric Alvarez",            acv:1847210, sentiment:"Red",    score:"",                        renewalQ:"FY28Q4", trekQ:"FY28Q1", prioritized:"yes", meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"Centuri Group",                segment:"Strategic", tier:"Strategic Standard",csm:"Tejas Satyan",            acv:2575547, sentiment:"Yellow", score:"3 - Flat",               renewalQ:"FY28Q1", trekQ:"FY27Q3", prioritized:"no",  meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"Ceva Logistics",               segment:"Select",    tier:"Select High",       csm:"Melissa Nezamzadeh",      acv:1233462, sentiment:"Yellow", score:"4 - Moderate Growth",    renewalQ:"FY28Q3", trekQ:"FY27Q4", prioritized:"yes", meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"City of Memphis - Public Works",segment:"PubSec",   tier:"Premier",           csm:"Redding Byrd",            acv:1187771, sentiment:"Yellow", score:"4 - Moderate Growth",    renewalQ:"FY28Q3", trekQ:"FY27Q4", prioritized:"no",  meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"Clyde Companies, Inc",         segment:"Select",    tier:"Select High",       csm:"Melissa Nezamzadeh",      acv:1221838, sentiment:"Yellow", score:"4 - Moderate Growth",    renewalQ:"FY28Q4", trekQ:"FY28Q1", prioritized:"no",  meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"Coach USA",                    segment:"Select",    tier:"Select High",       csm:"Alexis Sender",           acv:1209510, sentiment:"Yellow", score:"4 - Moderate Growth",    renewalQ:"FY28Q1", trekQ:"FY27Q2", prioritized:"yes", meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"Coleman World Group LLC",      segment:"Select",    tier:"Select Standard",   csm:"Evan Ortiz",              acv:832612,  sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q1", trekQ:"FY27Q3", prioritized:"no",  meetingDone:false, execSponsors:["Arpan Podduturi (VP, Product Management)"],            csSponsors:["Caleb Newton (VP, Renewals)"],                           r1:"",r2:"",r3:""},
+  {company:"Con Global",                   segment:"Select",    tier:"Select Standard",   csm:"Eric Waguespack",         acv:997740,  sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q2", trekQ:"FY27Q2", prioritized:"yes", meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"DHL Supply Chain",             segment:"Strategic", tier:"Strategic High",    csm:"Lolly Kruse",             acv:2680091, sentiment:"Green",  score:"5 - Significant Growth", renewalQ:"FY28Q2", trekQ:"FY27Q2", prioritized:"yes", meetingDone:true,  execSponsors:["Robert Stobaugh (Chief Operating Officer - GTM)"],     csSponsors:["Robert Stobaugh (Chief Operating Officer - GTM)"],       r1:"",r2:"",r3:""},
+  {company:"DOT Transportation Inc.",      segment:"Select",    tier:"Select High",       csm:"Adriana Ameri",           acv:1316418, sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q1", trekQ:"FY27Q3", prioritized:"no",  meetingDone:false, execSponsors:["Sean Morris (SVP, Enterprise Sales)"],                 csSponsors:["Matt Rogers (VP, Customer Success & Services)"],         r1:"",r2:"",r3:""},
+  {company:"Ecolab",                       segment:"Strategic", tier:"Strategic High",    csm:"Josh Varanelli",          acv:3189075, sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q3", trekQ:"FY27Q4", prioritized:"no",  meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"Enercare",                     segment:"Canada",    tier:"Premier",           csm:"Hugo Naja",               acv:564110,  sentiment:"Green",  score:"3 - Flat",               renewalQ:"FY28Q4", trekQ:"FY27Q3", prioritized:"",   meetingDone:false, execSponsors:["Tim Nagy (SVP, Sales Engineering)"],                  csSponsors:["Miguel Torres (Director, Customer Success)"],            r1:"",r2:"",r3:""},
+  {company:"Frontier Communications",      segment:"Strategic", tier:"Strategic Standard",csm:"Daniel Cohen",            acv:1173178, sentiment:"Red",    score:"1 - Significant Downsize",renewalQ:"FY28Q1", trekQ:"FY27Q2", prioritized:"yes", meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"GardaWorld",                   segment:"Canada",    tier:"Elite",             csm:"Hugo Naja",               acv:1570000, sentiment:"Green",  score:"3 - Flat",               renewalQ:"FY28Q1", trekQ:"FY27Q3", prioritized:"",   meetingDone:false, execSponsors:["Tim Nagy (SVP, Sales Engineering)"],                  csSponsors:["Miguel Torres (Director, Customer Success)"],            r1:"",r2:"",r3:""},
+  {company:"Grand Isle Shipyard",          segment:"Core",      tier:"Core High",         csm:"Jenny Guffy",             acv:679081,  sentiment:"Yellow", score:"3 - Flat",               renewalQ:"FY28Q1", trekQ:"FY27Q3", prioritized:"yes", meetingDone:false, execSponsors:["Arpan Podduturi (VP, Product Management)"],            csSponsors:["Caleb Newton (VP, Renewals)"],                           r1:"",r2:"",r3:""},
+  {company:"Heniff Transportation Systems",segment:"Select",    tier:"Select High",       csm:"Adriana Ameri",           acv:1539651, sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q1", trekQ:"FY27Q3", prioritized:"no",  meetingDone:false, execSponsors:["Sean Morris (SVP, Enterprise Sales)"],                 csSponsors:["Matt Rogers (VP, Customer Success & Services)"],         r1:"",r2:"",r3:""},
+  {company:"KeHE Distributors, LLC",       segment:"Select",    tier:"Select High",       csm:"James Ruyle",             acv:1509690, sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q1", trekQ:"FY27Q3", prioritized:"no",  meetingDone:false, execSponsors:["Sean McGee (VP, Platform)"],                            csSponsors:["Marcus Walker (Director, Customer Success)"],            r1:"",r2:"",r3:""},
+  {company:"Loblaw",                       segment:"Canada",    tier:"Elite",             csm:"Hugo Naja",               acv:1290000, sentiment:"Yellow", score:"3 - Flat",               renewalQ:"FY30Q3", trekQ:"FY27Q3", prioritized:"",   meetingDone:false, execSponsors:["Tim Nagy (SVP, Sales Engineering)"],                  csSponsors:["Miguel Torres (Director, Customer Success)"],            r1:"",r2:"",r3:""},
+  {company:"Maxim Crane Works",            segment:"Select",    tier:"Select High",       csm:"Daniel Cohen",            acv:2595985, sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q2", trekQ:"FY27Q3", prioritized:"no",  meetingDone:false, execSponsors:["Sean Morris (SVP, Enterprise Sales)"],                 csSponsors:["Matt Rogers (VP, Customer Success & Services)"],         r1:"",r2:"",r3:""},
+  {company:"MBTA",                         segment:"PubSec",    tier:"Elite",             csm:"Pierce Nixon",            acv:1210552, sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q3", trekQ:"FY27Q4", prioritized:"yes", meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"Midwest Logistics Systems Ltd",segment:"Strategic", tier:"Strategic Standard",csm:"Daniel Cohen",            acv:1438073, sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q1", trekQ:"FY27Q3", prioritized:"no",  meetingDone:false, execSponsors:["Sean Morris (SVP, Enterprise Sales)"],                 csSponsors:["Matt Rogers (VP, Customer Success & Services)"],         r1:"",r2:"",r3:""},
+  {company:"MMR Group",                    segment:"Core",      tier:"Core High",         csm:"Adam Weimer",             acv:851252,  sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q4", trekQ:"FY28Q1", prioritized:"no",  meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"MPW Industrial Services",      segment:"Select",    tier:"Select Standard",   csm:"Francisco Tovar",         acv:832471,  sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q4", trekQ:"FY28Q1", prioritized:"no",  meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"National Coatings & Supplies", segment:"Select",    tier:"Select Standard",   csm:"Paulette Santa-Parzons",  acv:818952,  sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q1", trekQ:"FY27Q2", prioritized:"yes", meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"Nutrien Ag Solutions",         segment:"Strategic", tier:"Strategic High",    csm:"Josh Varanelli",          acv:4589988, sentiment:"Green",  score:"",                        renewalQ:"FY28Q4", trekQ:"FY28Q1", prioritized:"yes", meetingDone:true,  execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"Omnisource Transport",         segment:"Select",    tier:"Select High",       csm:"Nick Joyce",              acv:1243653, sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q4", trekQ:"FY28Q1", prioritized:"no",  meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"PCL Construction Resources",   segment:"Canada",    tier:"Premier",           csm:"Corey Self",              acv:845739,  sentiment:"Yellow", score:"4 - Moderate Growth",    renewalQ:"FY28Q1", trekQ:"FY27Q3", prioritized:"no",  meetingDone:false, execSponsors:[],                                                              csSponsors:["Miguel Torres (Director, Customer Success)"],            r1:"",r2:"",r3:""},
+  {company:"Performance Food Group",       segment:"Strategic", tier:"Strategic High",    csm:"Cristin Sullivan",        acv:4383439, sentiment:"Yellow", score:"3 - Flat",               renewalQ:"FY28Q2", trekQ:"FY27Q3", prioritized:"yes", meetingDone:false, execSponsors:["Johan Land (SVP, Product & Eng)"],                     csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"Pinnacle Power Services",      segment:"Plus",      tier:"Plus",              csm:"Corinne Adams",           acv:371763,  sentiment:"Green",  score:"2 - Moderate Downsize",  renewalQ:"FY28Q2", trekQ:"FY27Q3", prioritized:"",   meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"PS Logistics",                 segment:"Strategic", tier:"Strategic High",    csm:"Lolly Kruse",             acv:2861085, sentiment:"Yellow", score:"3 - Flat",               renewalQ:"FY28Q1", trekQ:"FY27Q3", prioritized:"no",  meetingDone:false, execSponsors:["Arpan Podduturi (VP, Product Management)"],            csSponsors:["Caleb Newton (VP, Renewals)"],                           r1:"",r2:"",r3:""},
+  {company:"River North Transit, LLC",     segment:"Select",    tier:"Select Standard",   csm:"Soly Mahmoudyeh",         acv:1137600, sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q2", trekQ:"FY27Q3", prioritized:"no",  meetingDone:false, execSponsors:["Arpan Podduturi (VP, Product Management)"],            csSponsors:["Caleb Newton (VP, Renewals)"],                           r1:"",r2:"",r3:""},
+  {company:"Roto-Rooter Services Company", segment:"Select",    tier:"Select Standard",   csm:"Eric Waguespack",         acv:753409,  sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q3", trekQ:"FY27Q3", prioritized:"no",  meetingDone:false, execSponsors:["Sean Morris (SVP, Enterprise Sales)"],                 csSponsors:["Matt Rogers (VP, Customer Success & Services)"],         r1:"",r2:"",r3:""},
+  {company:"Smithfield",                   segment:"Select",    tier:"Select Standard",   csm:"Nikhil Anilkumar",        acv:840128,  sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q4", trekQ:"FY28Q1", prioritized:"no",  meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"Sobeys",                       segment:"Canada",    tier:"Elite",             csm:"Hugo Naja",               acv:1040000, sentiment:"Green",  score:"3 - Flat",               renewalQ:"FY28Q1", trekQ:"FY27Q3", prioritized:"",   meetingDone:false, execSponsors:["Tim Nagy (SVP, Sales Engineering)"],                  csSponsors:["Miguel Torres (Director, Customer Success)"],            r1:"",r2:"",r3:""},
+  {company:"Southeastern Freight Lines",   segment:"Strategic", tier:"Strategic High",    csm:"Eric Alvarez",            acv:3292486, sentiment:"Yellow", score:"3 - Flat",               renewalQ:"FY28Q2", trekQ:"FY27Q3", prioritized:"yes", meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"State of New York: OGS",       segment:"PubSec",    tier:"Elite",             csm:"Pierce Nixon",            acv:2348195, sentiment:"Yellow", score:"4 - Moderate Growth",    renewalQ:"FY28Q1", trekQ:"FY27Q2", prioritized:"yes", meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"Superior Group",               segment:"Canada",    tier:"Elite",             csm:"Hugo Naja",               acv:1940000, sentiment:"Red",    score:"2 - Moderate Downsize",  renewalQ:"FY27Q2", trekQ:"FY27Q3", prioritized:"",   meetingDone:false, execSponsors:["Tim Nagy (SVP, Sales Engineering)"],                  csSponsors:["Miguel Torres (Director, Customer Success)"],            r1:"",r2:"",r3:""},
+  {company:"Swissport International Ltd",  segment:"Strategic", tier:"Strategic Standard",csm:"Lolly Kruse",             acv:881280,  sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q4", trekQ:"FY28Q1", prioritized:"no",  meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"TFA Logistics [fka Outwest Express]",segment:"Select",tier:"Select Standard", csm:"Paulette Santa-Parzons",  acv:1002492, sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q1", trekQ:"FY27Q2", prioritized:"yes", meetingDone:true,  execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"Transformco",                  segment:"Strategic", tier:"Strategic Standard",csm:"Damon Ryzner",            acv:1093395, sentiment:"Yellow", score:"2 - Moderate Downsize",  renewalQ:"FY28Q3", trekQ:"FY27Q4", prioritized:"",   meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"TransWood Inc.",               segment:"Select",    tier:"Select Standard",   csm:"James Ruyle",             acv:953903,  sentiment:"Red",    score:"2 - Moderate Downsize",  renewalQ:"FY28Q1", trekQ:"FY27Q3", prioritized:"yes", meetingDone:false, execSponsors:["Matt Rogers (VP, Customer Success & Services)"],       csSponsors:["Matt Rogers (VP, Customer Success & Services)"],         r1:"",r2:"",r3:""},
+  {company:"Trican Well Services",         segment:"Canada",    tier:"Premier",           csm:"Melanie Ingram",          acv:704900,  sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q4", trekQ:"FY27Q3", prioritized:"",   meetingDone:false, execSponsors:[],                                                              csSponsors:["Miguel Torres (Director, Customer Success)"],            r1:"",r2:"",r3:""},
+  {company:"Tyson Foods, Inc.",            segment:"Select",    tier:"Select High",       csm:"James Ruyle",             acv:1511865, sentiment:"Yellow", score:"4 - Moderate Growth",    renewalQ:"FY28Q3", trekQ:"FY27Q4", prioritized:"no",  meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"UniGroup, Inc.",               segment:"Select",    tier:"Select High",       csm:"Amanda Tarnate-Strauss",  acv:2306414, sentiment:"Yellow", score:"5 - Significant Growth", renewalQ:"FY28Q4", trekQ:"FY28Q1", prioritized:"no",  meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"US Lumber / Specialty Bldg Products",segment:"Select",tier:"Select Standard", csm:"Francisco Tovar",         acv:756468,  sentiment:"Yellow", score:"3 - Flat",               renewalQ:"FY28Q2", trekQ:"FY27Q3", prioritized:"yes", meetingDone:false, execSponsors:["Sean McGee (VP, Platform)"],                            csSponsors:["Marcus Walker (Director, Customer Success)"],            r1:"",r2:"",r3:""},
+  {company:"Vivint SmartHome",             segment:"Select",    tier:"Select High",       csm:"Patricia Clarkson",       acv:1149916, sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q1", trekQ:"FY27Q3", prioritized:"",   meetingDone:false, execSponsors:[],                                                              csSponsors:["Kristine Dillon (Director, Customer Success)"],          r1:"",r2:"",r3:""},
+  {company:"Wagner Equipment (CAT Dealer)", segment:"Select",   tier:"Select Standard",   csm:"Dee Hall",                acv:759848,  sentiment:"Yellow", score:"4 - Moderate Growth",    renewalQ:"FY28Q4", trekQ:"FY28Q1", prioritized:"yes", meetingDone:true,  execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
+  {company:"WSP USA",                      segment:"Select",    tier:"Select High",       csm:"James Ruyle",             acv:1242864, sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q1", trekQ:"FY27Q3", prioritized:"no",  meetingDone:false, execSponsors:["Arpan Podduturi (VP, Product Management)"],            csSponsors:["Caleb Newton (VP, Renewals)"],                           r1:"",r2:"",r3:""},
+  {company:"XPO Logistics: LTL",           segment:"Strategic", tier:"Strategic High",    csm:"Eric Alvarez",            acv:6451647, sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q3", trekQ:"FY27Q2", prioritized:"no",  meetingDone:true,  execSponsors:["Arpan Podduturi (VP, Product Management)","Johan Land (SVP, Product & Eng)"], csSponsors:["Katie Aicardi"], r1:"Dan Sedney (AVP, Enterprise Sales)",r2:"",r3:""},
+];
+
+// ââ State âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+let allRows = SEED;
+let chartInstances = {};
+let isLive = false;
+
+// ââ Helpers âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+function fmt(n) {
+  if (n>=1e6) return '$'+(n/1e6).toFixed(1)+'M';
+  if (n>=1e3) return '$'+Math.round(n/1e3)+'K';
+  return '$'+n;
+}
+function shortName(s) { return s.replace(/\s*\(.*?\)\s*/g,'').trim(); }
+function roleOf(s)     { const m=s.match(/\(([^)]+)\)/); return m?m[1]:''; }
+function initials(s)   { return shortName(s).split(' ').slice(0,2).map(w=>w[0]||'').join('').toUpperCase(); }
+function isBool(v)     { return v===true||v==='True'||v==='1'; }
+
+function parseMulti(v) {
+  if (!v) return [];
+  const result=[]; let depth=0,cur='';
+  for (const ch of v) {
+    if (ch==='(') depth++;
+    else if (ch===')') depth--;
+    else if (ch===','&&depth===0) { if(cur.trim()) result.push(cur.trim()); cur=''; continue; }
+    cur+=ch;
+  }
+  if (cur.trim()) result.push(cur.trim());
+  return result;
+}
+
+function rowFromSheet(cells, colMap) {
+  const cell = t => { const i=colMap[t]; if(i===undefined) return null; const c=cells.find(x=>x.column_index===i); return c?c.value:null; };
+  return {
+    company:      cell('Company Name'),
+    sentiment:    cell('Sentiment')||'N/A',
+    score:        cell('Propensity to Renew Score')||'',
+    renewalQ:     cell('Renewal Quarter')||'',
+    trekQ:        cell('Trek Quarter')||'',
+    segment:      cell('Company Segment')||'',
+    tier:         cell('Company CS Tier')||'',
+    csm:          cell('CSM Name')||'',
+    acv:          parseFloat(cell('SUM of ACV Bookings ($)')||0),
+    prioritized:  (cell('Prioritized Account?')||'').toLowerCase(),
+    meetingDone:  isBool(cell('Meeting Completed?')),
+    execSponsors: parseMulti(cell('[Confirmed] Exec Sponsor')),
+    csSponsors:   parseMulti(cell('[Confirmed] CS Sponsor')),
+    r1: cell('Ridealong Seat 1')||'',
+    r2: cell('Ridealong Seat 2')||'',
+    r3: cell('Ridealong Seat 3')||'',
+  };
+}
+
+// ââ Live refresh (best-effort) ââââââââââââââââââââââââââââââââââââââââââââââââ
+async function tryLiveRefresh() {
+  try {
+    const result = await window.cowork.callMcpTool(
+      'mcp__9c318d2c-5df3-46cb-81bb-d5a6624dddad__get_sheet_summary',
+      { sheet_id: 3787138412793732, columns: [
+          'Company Name','Sentiment','Propensity to Renew Score','Renewal Quarter',
+          'Trek Quarter','Company Segment','Company CS Tier','CSM Name',
+          'SUM of ACV Bookings ($)','Prioritized Account?','Meeting Completed?',
+          '[Confirmed] Exec Sponsor','[Confirmed] CS Sponsor',
+          'Ridealong Seat 1','Ridealong Seat 2','Ridealong Seat 3'
+        ]
+      }
+    );
+    const colMap={};
+    (result.available_columns||[]).forEach(c=>{ colMap[c.title]=c.index; });
+    const fresh = (result.rows||[])
+      .filter(r=>r.cells&&r.cells.length)
+      .map(r=>rowFromSheet(r.cells,colMap))
+      .filter(r=>r.company);
+    if (fresh.length > 0) {
+      allRows = fresh;
+      isLive = true;
+      document.getElementById('dataBadge').className='data-badge badge-live';
+      document.getElementById('dataBadge').textContent='â Live';
+      document.getElementById('lastUpdated').textContent=
+        'Refreshed '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+      applyFilters();
+    }
+  } catch(e) {
+    // Silent â seed data already showing
+  }
+}
+
+// ââ Boot ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+function init() {
+  // Show seed data immediately
+  populate('fTrek',    [...new Set(allRows.map(r=>r.trekQ).filter(Boolean))].sort());
+  populate('fSegment', [...new Set(allRows.map(r=>r.segment).filter(Boolean))].sort());
+  document.getElementById('dataBadge').className='data-badge badge-cached';
+  document.getElementById('dataBadge').textContent='â Cached Â· May 26';
+  document.getElementById('lastUpdated').textContent='Attempting live refreshâ¦';
+  applyFilters();
+  tryLiveRefresh();
+}
+
+function populate(id, values) {
+  const sel=document.getElementById(id);
+  const first=sel.options[0].cloneNode(true);
+  sel.innerHTML=''; sel.appendChild(first);
+  values.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); });
+}
+
+function applyFilters() {
+  const trekF=document.getElementById('fTrek').value;
+  const segF =document.getElementById('fSegment').value;
+  const priF =document.getElementById('fPriority').value;
+  const sentF=document.getElementById('fSentiment').value;
+  const rows=allRows.filter(r=>
+    (!trekF||r.trekQ===trekF)&&
+    (!segF||r.segment===segF)&&
+    (!priF||r.prioritized.startsWith(priF))&&
+    (!sentF||r.sentiment===sentF)
+  );
+  render(rows);
+}
+
+function destroyCharts() {
+  Object.values(chartInstances).forEach(c=>{ try{c.destroy();}catch(e){} });
+  chartInstances={};
+}
+
+function sentClass(s){ return {Green:'badge-green',Yellow:'badge-yellow',Red:'badge-red'}[s]||'badge-na'; }
+function scoreNum(s) { const m=s.match(/^(\d)/); return m?parseInt(m[1]):-1; }
+
+function render(rows) {
+  destroyCharts();
+  const n=rows.length;
+  const totalACV=rows.reduce((s,r)=>s+r.acv,0);
+  const prioritized=rows.filter(r=>r.prioritized.startsWith('yes'));
+  const sentCount={Green:0,Yellow:0,Red:0};
+  const sentACV={Green:0,Yellow:0,Red:0};
+  rows.forEach(r=>{ if(sentCount[r.sentiment]!==undefined){sentCount[r.sentiment]++;sentACV[r.sentiment]+=r.acv;} });
+
+  const segMap={},trekChartMap={};
+  rows.forEach(r=>{ if(r.segment) segMap[r.segment]=(segMap[r.segment]||0)+r.acv; if(r.trekQ) trekChartMap[r.trekQ]=(trekChartMap[r.trekQ]||0)+r.acv; });
+  const segKeys=Object.keys(segMap).sort((a,b)=>segMap[b]-segMap[a]);
+  const trekChartKeys=Object.keys(trekChartMap).sort();
+
+  // Trek groups
+  const trekGroups={};
+  TREK_ORDER.forEach(q=>{trekGroups[q]=[];});
+  rows.forEach(r=>{ if(trekGroups[r.trekQ]) trekGroups[r.trekQ].push(r); });
+
+  // Exec map
+  const execMap={};
+  const addExec=(name,type)=>{ if(!name) return; const k=name.trim(); if(!k||k.toLowerCase()==='no preference') return; if(!execMap[k]) execMap[k]={count:0,type}; execMap[k].count++; };
+  rows.forEach(r=>{ r.execSponsors.forEach(e=>addExec(e,'sponsor')); r.csSponsors.forEach(e=>addExec(e,'cs')); [r.r1,r.r2,r.r3].filter(Boolean).forEach(e=>addExec(e,'ridealong')); });
+  const execList=Object.entries(execMap).sort((a,b)=>b[1].count-a[1].count);
+  const typeDotColor={sponsor:'#4338CA',cs:'#15803D',ridealong:'#C2410C'};
+
+  document.getElementById('root').innerHTML=`
+    <div class="kpi-row">
+      <div class="kpi" style="--accent:#FC6A21">
+        <div class="kpi-label">Total Renewal ACV</div>
+        <div class="kpi-value">${fmt(totalACV)}</div>
+        <div class="kpi-sub">${n} accounts tracked</div>
+      </div>
+      <div class="kpi" style="--accent:#22C55E">
+        <div class="kpi-label">Meetings Completed</div>
+        <div class="kpi-value">${rows.filter(r=>r.meetingDone).length}<span class="kpi-denom"> / ${n}</span></div>
+        <div class="kpi-sub">${n>0?Math.round(rows.filter(r=>r.meetingDone).length/n*100):0}% of accounts</div>
+      </div>
+      <div class="kpi" style="--accent:#6366F1">
+        <div class="kpi-label">Prioritized Accounts</div>
+        <div class="kpi-value">${prioritized.length}</div>
+        <div class="kpi-sub">${fmt(prioritized.reduce((s,r)=>s+r.acv,0))} ACV</div>
+      </div>
+      <div class="kpi" style="--accent:#EF4444">
+        <div class="kpi-label">At-Risk ACV</div>
+        <div class="kpi-value" style="color:var(--red)">${fmt(sentACV.Red+sentACV.Yellow)}</div>
+        <div class="kpi-sub">${sentCount.Red} red Â· ${sentCount.Yellow} yellow</div>
+      </div>
+    </div>
+
+    <div class="charts-row">
+      <div class="chart-card"><div class="card-title">Sentiment</div><div class="chart-wrap"><canvas id="cSentiment"></canvas></div></div>
+      <div class="chart-card"><div class="card-title">ACV by Segment</div><div class="chart-wrap"><canvas id="cSegment"></canvas></div></div>
+      <div class="chart-card"><div class="card-title">ACV by Trek Quarter</div><div class="chart-wrap"><canvas id="cTrek"></canvas></div></div>
+    </div>
+
+    <div class="trek-card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div class="card-title" style="margin:0">Trek Status</div>
+        <div style="display:flex;gap:14px">
+          <span style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted)"><span style="width:8px;height:8px;border-radius:50%;background:#FC6A21;display:inline-block"></span>In Progress</span>
+          <span style="display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted)"><span style="width:8px;height:8px;border-radius:50%;background:#D1D5DB;display:inline-block"></span>Not Started</span>
+        </div>
+      </div>
+      <div class="trek-columns">
+        ${TREK_ORDER.map(q=>{
+          const cfg=TREK_CONFIG[q]||{label:q,status:'not-started',statusLabel:'Not Started',dotClass:'dot-not-started',badgeClass:'badge-not-started'};
+          const accts=(trekGroups[q]||[]).sort((a,b)=>b.acv-a.acv);
+          const qACV=accts.reduce((s,r)=>s+r.acv,0);
+          return `<div class="trek-col ${cfg.status}">
+            <div class="trek-col-header">
+              <div class="trek-col-label">${cfg.label}</div>
+              <div class="trek-status-badge ${cfg.badgeClass}"><span class="${cfg.dotClass}"></span>${cfg.statusLabel}</div>
+            </div>
+            <div class="trek-stats">
+              <div class="trek-stat"><span class="trek-stat-val">${accts.length}</span> <span class="trek-stat-lbl">accounts</span></div>
+              <div class="trek-stat"><span class="trek-stat-val">${fmt(qACV)}</span> <span class="trek-stat-lbl">ACV</span></div>
+            </div>
+            <div class="trek-col-body">
+              ${accts.length===0
+                ? '<div style="font-size:11px;color:var(--muted);text-align:center;padding:20px 0">No accounts</div>'
+                : accts.map(r=>`<div class="trek-account-row"><span class="sent-dot ${r.sentiment==='N/A'?'NA':r.sentiment}"></span><span class="trek-acct-name" title="${r.company}">${r.company}</span><span class="trek-acct-acv">${fmt(r.acv)}</span></div>`).join('')}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    ${execList.length>0?`
+    <div class="exec-card">
+      <div class="card-title" style="margin-bottom:10px">Exec Participants Across Trek</div>
+      <div class="exec-grid">
+        ${execList.map(([name,info])=>`
+          <div class="exec-item">
+            <div class="exec-avatar" style="background:${typeDotColor[info.type]||'#999'}">${initials(name)}</div>
+            <div style="min-width:0;flex:1">
+              <div class="exec-name">${shortName(name)}</div>
+              ${roleOf(name)?`<div class="exec-role">${roleOf(name)}</div>`:''}
+            </div>
+            <div class="exec-count">${info.count} acct${info.count>1?'s':''}</div>
+          </div>`).join('')}
+      </div>
+      <div style="display:flex;gap:14px;margin-top:10px">
+        <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)"><span style="width:8px;height:8px;border-radius:50%;background:#4338CA;display:inline-block"></span>Exec Sponsor</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)"><span style="width:8px;height:8px;border-radius:50%;background:#15803D;display:inline-block"></span>CS Sponsor</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted)"><span style="width:8px;height:8px;border-radius:50%;background:#C2410C;display:inline-block"></span>Ridealong</span>
+      </div>
+    </div>`:''}
+
+    <div class="table-card">
+      <div class="table-header">
+        <div class="card-title" style="margin:0">All Accounts (${n})</div>
+        <div style="font-size:11px;color:var(--muted)">Sorted by ACV</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th>Company</th><th>Segment</th><th>Trek Q</th><th>Renewal Q</th>
+            <th>ACV</th><th>Sentiment</th><th>Score</th><th>â</th>
+            <th>CSM</th><th>Mtg Done</th><th>Exec Sponsor</th><th>CS Sponsor</th><th>Ridealongs</th>
+          </tr></thead>
+          <tbody>
+            ${rows.slice().sort((a,b)=>b.acv-a.acv).map(r=>{
+              const snum=scoreNum(r.score);
+              const sc=snum>=0?`s${snum}`:'s3';
+              const pri=r.prioritized.startsWith('yes');
+              const rides=[r.r1,r.r2,r.r3].filter(Boolean);
+              return `<tr>
+                <td><span class="company-name" title="${r.company}">${r.company}</span></td>
+                <td>${r.segment}</td>
+                <td style="white-space:nowrap">${r.trekQ}</td>
+                <td style="white-space:nowrap">${r.renewalQ}</td>
+                <td style="font-weight:700">${fmt(r.acv)}</td>
+                <td><span class="badge ${sentClass(r.sentiment)}">${r.sentiment}</span></td>
+                <td style="text-align:center"><span class="score-chip ${sc}">${snum>=0?snum:'?'}</span></td>
+                <td style="text-align:center">${pri?'<span class="tick">â</span>':'<span class="dash">â</span>'}</td>
+                <td style="color:var(--muted);font-size:11px;white-space:nowrap">${r.csm}</td>
+                <td style="text-align:center">${r.meetingDone?'<span class="tick">â</span>':'<span class="dash">â</span>'}</td>
+                <td><div class="exec-pills">${r.execSponsors.map(e=>`<span class="exec-pill sponsor">${shortName(e)}</span>`).join('')}</div></td>
+                <td><div class="exec-pills">${r.csSponsors.map(e=>`<span class="exec-pill cs">${shortName(e)}</span>`).join('')}</div></td>
+                <td><div class="exec-pills">${rides.map(e=>`<span class="exec-pill ridealong">${e}</span>`).join('')}</div></td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+
+  chartInstances.sentiment=new Chart(document.getElementById('cSentiment'),{
+    type:'doughnut',
+    data:{labels:['Green','Yellow','Red'],datasets:[{data:[sentCount.Green,sentCount.Yellow,sentCount.Red],backgroundColor:['#22C55E','#F59E0B','#EF4444'],borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'right',labels:{font:{size:11},padding:8,boxWidth:10}},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.raw} (${fmt(sentACV[ctx.label])})`}}}}
+  });
+  chartInstances.segment=new Chart(document.getElementById('cSegment'),{
+    type:'bar',
+    data:{labels:segKeys,datasets:[{data:segKeys.map(k=>segMap[k]),backgroundColor:'#FC6A21',borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)}}},scales:{x:{grid:{color:'#F3F4F6'},ticks:{font:{size:10},callback:v=>fmt(v)}},y:{grid:{display:false},ticks:{font:{size:11}}}}}
+  });
+  chartInstances.trek=new Chart(document.getElementById('cTrek'),{
+    type:'bar',
+    data:{labels:trekChartKeys,datasets:[{data:trekChartKeys.map(k=>trekChartMap[k]),backgroundColor:'#1B1C1E',borderRadius:4}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)}}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:'#F3F4F6'},ticks:{font:{size:10},callback:v=>fmt(v)}}}}
+  });
+}
+
+init();
+</script>
+</body>
+</html>
