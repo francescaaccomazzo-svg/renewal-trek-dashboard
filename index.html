@@ -78,6 +78,7 @@ header {
 .trek-account-row:hover { border-color: var(--border); background: white; }
 .trek-acct-name { font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .trek-acct-acv { font-size: 10px; color: var(--muted); white-space: nowrap; }
+.trek-acct-loc { font-weight: 400; color: var(--muted); font-size: 10px; margin-left: 3px; }
 .trek-col.in-progress .trek-col-header { background: #FFF7ED; }
 .trek-col.not-started .trek-col-header { background: #F9FAFB; }
 .badge-in-progress { background: #FEF3C7; color: #92400E; }
@@ -290,6 +291,7 @@ function rowFromSheet(cells, colMap) {
     r1: cell('Ridealong Seat 1')||'',
     r2: cell('Ridealong Seat 2')||'',
     r3: cell('Ridealong Seat 3')||'',
+    location: cell('CSM Confirmed Customer Location (City, State)')||'',
   };
 }
 
@@ -303,7 +305,8 @@ async function tryLiveRefresh() {
           'Trek Quarter','Company Segment','Company CS Tier','CSM Name',
           'SUM of ACV Bookings ($)','Prioritized Account?','Meeting Completed?',
           '[Confirmed] Exec Sponsor','[Confirmed] CS Sponsor',
-          'Ridealong Seat 1','Ridealong Seat 2','Ridealong Seat 3'
+          'Ridealong Seat 1','Ridealong Seat 2','Ridealong Seat 3',
+          'CSM Confirmed Customer Location (City, State)'
         ]
       }
     );
@@ -449,7 +452,7 @@ function render(rows) {
             <div class="trek-col-body">
               ${accts.length===0
                 ? '<div style="font-size:11px;color:var(--muted);text-align:center;padding:20px 0">No accounts</div>'
-                : accts.map(r=>`<div class="trek-account-row"><span class="sent-dot ${r.sentiment==='N/A'?'NA':r.sentiment}"></span><span class="trek-acct-name" title="${r.company}">${r.company}</span><span class="trek-acct-acv">${fmt(r.acv)}</span></div>`).join('')}
+                : accts.map(r=>`<div class="trek-account-row"><span class="sent-dot ${r.sentiment==='N/A'?'NA':r.sentiment}"></span><span class="trek-acct-name" title="${r.company}${r.location?' \u00B7 '+r.location:''}">${r.company}${r.location?`<span class="trek-acct-loc">\u00B7 ${r.location}</span>`:''}</span><span class="trek-acct-acv">${fmt(r.acv)}</span></div>`).join('')}
             </div>
           </div>`;
         }).join('')}
@@ -493,7 +496,7 @@ function render(rows) {
             ${rows.slice().sort((a,b)=>b.acv-a.acv).map(r=>{
               const snum=scoreNum(r.score);
               const sc=snum>=0?`s${snum}`:'s3';
-              const pri=r.prioritized.startsWith('yes');
+              const pri=r.prioritized.startsWith(yes');
               const rides=[r.r1,r.r2,r.r3].filter(Boolean);
               return `<tr>
                 <td><span class="company-name" title="${r.company}">${r.company}</span></td>
@@ -501,7 +504,7 @@ function render(rows) {
                 <td style="white-space:nowrap">${r.trekQ}</td>
                 <td style="white-space:nowrap">${r.renewalQ}</td>
                 <td style="font-weight:700">${fmt(r.acv)}</td>
-                <td><span class="badge ${sentClass(r.sentiment)}">${r.sentiment}</span></td>
+                <td><span class="badge ${sentClass(z.sentiment)}">${r.sentiment}</span></td>
                 <td style="text-align:center"><span class="score-chip ${sc}">${snum>=0?snum:'?'}</span></td>
                 <td style="text-align:center">${pri?'<span class="tick">&#9733;</span>':'<span class="dash">&mdash;</span>'}</td>
                 <td style="color:var(--muted);font-size:11px;white-space:nowrap">${r.csm}</td>
@@ -520,7 +523,7 @@ function render(rows) {
   chartInstances.sentiment=new Chart(document.getElementById('cSentiment'),{
     type:'doughnut',
     data:{labels:['Green','Yellow','Red'],datasets:[{data:[sentCount.Green,sentCount.Yellow,sentCount.Red],backgroundColor:['#22C55E','#F59E0B','#EF4444'],borderWidth:0}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'right',labels:{font:{size:11},padding:8,boxWidth:10}},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.raw} (${fmt(sentACV[ctx.label])})`}}}}
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'right',labels:zfont:{size:11},padding:8,boxWidth:10}},tooltip:{mcallbacks:{label:ctx=>` ${ctx.label}: ${ctx.raw} (${fmt(sentACV[ctx.label])})`}}}}
   });
   chartInstances.segment=new Chart(document.getElementById('cSegment'),{
     type:'bar',
@@ -530,7 +533,7 @@ function render(rows) {
   chartInstances.trek=new Chart(document.getElementById('cTrek'),{
     type:'bar',
     data:{labels:trekChartKeys,datasets:[{data:trekChartKeys.map(k=>trekChartMap[k]),backgroundColor:'#1B1C1E',borderRadius:4}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>' '+fmt(ctx.raw)}}},scales:{x:{grid:{display:false},ticks:{font:{size:11}}},y:{grid:{color:'#F3F4F6'},ticks:{font:{size:10},callback:v=>fmt(v)}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:zdisplay:false},tooltip:{mcallbacks:{label:ctx=>' '+fmt(ctx.raw)}}},scales:{x:{grid¢{display:false},ticks:{font:{size:11}}},y:{grid:{mcolor:'#F3F4F6'},ticks:{font:{size:10},callback:v=>fmt(v)}}}}
   });
 }
 
