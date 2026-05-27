@@ -133,13 +133,13 @@ tr:hover td { background: #FAFBFF; }
   <div class="header-left">
     <div class="logo-dot">S</div>
     <div>
-      <div class="header-title">FY28 Renewal Trek â Executive Dashboard</div>
-      <div class="header-sub">US + Canada Renewal Opportunities Â&middot; Live from Smartsheet</div>
+      <div class="header-title">FY28 Renewal Trek &mdash; Executive Dashboard</div>
+      <div class="header-sub">US + Canada Renewal Opportunities &middot; Live from Smartsheet</div>
     </div>
   </div>
   <div class="header-right">
-    <div id="lastUpdated">â</div>
-    <div id="dataBadge" class="data-badge badge-cached">â³ Loadingâ¦</div>
+    <div id="lastUpdated">&mdash;</div>
+    <div id="dataBadge" class="data-badge badge-cached"> Loading...</div>
   </div>
 </header>
 
@@ -158,27 +158,27 @@ tr:hover td { background: #FAFBFF; }
   <div class="filter-group"><label>Sentiment</label>
     <select id="fSentiment" onchange="applyFilters()">
       <option value="">All</option>
-      <option value="Green">ð¢ Green</option>
-      <option value="Yellow">ð¡ Yellow</option>
-      <option value="Red">ð´ Red</option>
+      <option value="Green">Green</option>
+      <option value="Yellow">Yellow</option>
+      <option value="Red">Red</option>
     </select>
   </div>
 </div>
 
 <div class="main"><div id="root"></div></div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbN5OhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
 <script>
-// ââ Trek config âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// -- Trek config ---------------------------------------------------------------
 const TREK_CONFIG = {
-  'FY27Q2': { label:'Q2 Â&middot; FY27', status:'in-progress',  statusLabel:'In Progress', dotClass:'dot-in-progress',  badgeClass:'badge-in-progress'  },
-  'FY27Q3': { label:'Q3 Â&middot; FY27', status:'in-progress',  statusLabel:'In Progress', dotClass:'dot-in-progress',  badgeClass:'badge-in-progress'  },
-  'FY27Q4': { label:'Q4 Â&middot; FY27', status:'not-started',  statusLabel:'Not Started', dotClass:'dot-not-started',  badgeClass:'badge-not-started'  },
-  'FY28Q1': { label:'Q1 Â&middot; FY28', status:'not-started',  statusLabel:'Not Started', dotClass:'dot-not-started',  badgeClass:'badge-not-started'  },
+  'FY27Q2': { label:'Q2 &middot; FY27', status:'in-progress',  statusLabel:'In Progress', dotClass:'dot-in-progress',  badgeClass:'badge-in-progress'  },
+  'FY27Q3': { label:'Q3 &middot; FY27', status:'in-progress',  statusLabel:'In Progress', dotClass:'dot-in-progress',  badgeClass:'badge-in-progress'  },
+  'FY27Q4': { label:'Q4 &middot; FY27', status:'not-started',  statusLabel:'Not Started', dotClass:'dot-not-started',  badgeClass:'badge-not-started'  },
+  'FY28Q1': { label:'Q1 &middot; FY28', status:'not-started',  statusLabel:'Not Started', dotClass:'dot-not-started',  badgeClass:'badge-not-started'  },
 };
 const TREK_ORDER = ['FY27Q2','FY27Q3','FY27Q4','FY28Q1'];
 
-// ââ Seed data (fetched 2026-05-26 â refreshed live on open) ââââââââââââââââââ
+// -- Seed data (fetched 2026-05-26 &mdash; refreshed live on open) ------------------
 const SEED = [
   {company:"A Teichert & Son, Inc.",       segment:"Select",    tier:"Select High",       csm:"James Ruyle",             acv:1581284, sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q1", trekQ:"FY27Q3", prioritized:"no",  meetingDone:false, execSponsors:[],                                                              csSponsors:["Kristine Dillon (Director, Customer Success)"],          r1:"",r2:"",r3:""},
   {company:"A W P Inc",                    segment:"Strategic", tier:"Strategic High",    csm:"Daniel Cohen",            acv:2654707, sentiment:"Green",  score:"",                        renewalQ:"FY28Q4", trekQ:"FY28Q1", prioritized:"no",  meetingDone:false, execSponsors:[],                                                              csSponsors:[],                                                        r1:"",r2:"",r3:""},
@@ -242,12 +242,12 @@ const SEED = [
   {company:"XPO Logistics: LTL",           segment:"Strategic", tier:"Strategic High",    csm:"Eric Alvarez",            acv:6451647, sentiment:"Green",  score:"4 - Moderate Growth",    renewalQ:"FY28Q3", trekQ:"FY27Q2", prioritized:"no",  meetingDone:true,  execSponsors:["Arpan Podduturi (VP, Product Management)","Johan Land (SVP, Product & Eng)"], csSponsors:["Katie Aicardi"], r1:"Dan Sedney (AVP, Enterprise Sales)",r2:"",r3:""},
 ];
 
-// ââ State âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// -- State ---------------------------------------------------------------------
 let allRows = SEED;
 let chartInstances = {};
 let isLive = false;
 
-// ââ Helpers âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// -- Helpers -------------------------------------------------------------------
 function fmt(n) {
   if (n>=1e6) return '$'+(n/1e6).toFixed(1)+'M';
   if (n>=1e3) return '$'+Math.round(n/1e3)+'K';
@@ -293,7 +293,7 @@ function rowFromSheet(cells, colMap) {
   };
 }
 
-// ââ Live refresh (best-effort) ââââââââââââââââââââââââââââââââââââââââââââââââ
+// -- Live refresh (best-effort) ------------------------------------------------
 async function tryLiveRefresh() {
   try {
     const result = await window.cowork.callMcpTool(
@@ -317,24 +317,24 @@ async function tryLiveRefresh() {
       allRows = fresh;
       isLive = true;
       document.getElementById('dataBadge').className='data-badge badge-live';
-      document.getElementById('dataBadge').textContent='â Live';
+      document.getElementById('dataBadge').textContent='Live';
       document.getElementById('lastUpdated').textContent=
         'Refreshed '+new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
       applyFilters();
     }
   } catch(e) {
-    // Silent â seed data already showing
+    // Silent &mdash; seed data already showing
   }
 }
 
-// ââ Boot ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+// -- Boot ----------------------------------------------------------------------
 function init() {
   // Show seed data immediately
   populate('fTrek',    [...new Set(allRows.map(r=>r.trekQ).filter(Boolean))].sort());
   populate('fSegment', [...new Set(allRows.map(r=>r.segment).filter(Boolean))].sort());
   document.getElementById('dataBadge').className='data-badge badge-cached';
-  document.getElementById('dataBadge').textContent='â Cached Â&middot; May 26';
-  document.getElementById('lastUpdated').textContent='Attempting live refreshâ¦';
+  document.getElementById('dataBadge').textContent='Cached \u00B7 May 26';
+  document.getElementById('lastUpdated').textContent='Attempting live refresh...';
   applyFilters();
   tryLiveRefresh();
 }
@@ -414,7 +414,7 @@ function render(rows) {
       <div class="kpi" style="--accent:#EF4444">
         <div class="kpi-label">At-Risk ACV</div>
         <div class="kpi-value" style="color:var(--red)">${fmt(sentACV.Red+sentACV.Yellow)}</div>
-        <div class="kpi-sub">${sentCount.Red} red Â&middot; ${sentCount.Yellow} yellow</div>
+        <div class="kpi-sub">${sentCount.Red} red &middot; ${sentCount.Yellow} yellow</div>
       </div>
     </div>
 
@@ -486,7 +486,7 @@ function render(rows) {
         <table>
           <thead><tr>
             <th>Company</th><th>Segment</th><th>Trek Q</th><th>Renewal Q</th>
-            <th>ACV</th><th>Sentiment</th><th>Score</th><th>â</th>
+            <th>ACV</th><th>Sentiment</th><th>Score</th><th>&#9733;</th>
             <th>CSM</th><th>Mtg Done</th><th>Exec Sponsor</th><th>CS Sponsor</th><th>Ridealongs</th>
           </tr></thead>
           <tbody>
@@ -503,9 +503,9 @@ function render(rows) {
                 <td style="font-weight:700">${fmt(r.acv)}</td>
                 <td><span class="badge ${sentClass(r.sentiment)}">${r.sentiment}</span></td>
                 <td style="text-align:center"><span class="score-chip ${sc}">${snum>=0?snum:'?'}</span></td>
-                <td style="text-align:center">${pri?'<span class="tick">â</span>':'<span class="dash">â</span>'}</td>
+                <td style="text-align:center">${pri?'<span class="tick">&#9733;</span>':'<span class="dash">&mdash;</span>'}</td>
                 <td style="color:var(--muted);font-size:11px;white-space:nowrap">${r.csm}</td>
-                <td style="text-align:center">${r.meetingDone?'<span class="tick">â</span>':'<span class="dash">â</span>'}</td>
+                <td style="text-align:center">${r.meetingDone?'<span class="tick">&#10003;</span>':'<span class="dash">&mdash;</span>'}</td>
                 <td><div class="exec-pills">${r.execSponsors.map(e=>`<span class="exec-pill sponsor">${shortName(e)}</span>`).join('')}</div></td>
                 <td><div class="exec-pills">${r.csSponsors.map(e=>`<span class="exec-pill cs">${shortName(e)}</span>`).join('')}</div></td>
                 <td><div class="exec-pills">${rides.map(e=>`<span class="exec-pill ridealong">${e}</span>`).join('')}</div></td>
